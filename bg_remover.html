@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Background Remover | Hugging Face API</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: #e0e7ff;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-card: #243247;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 20px 10px;
+        }
+
+        .logo-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(236, 72, 153, 0.15));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 8px 20px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #818cf8, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1.25;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Settings Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .badge-status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-missing {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .settings-body {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .settings-body {
+                grid-template-columns: 1.4fr 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        .help-link {
+            color: #818cf8;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .help-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Upload Area */
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dropzone {
+            border: 2px dashed #475569;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: var(--radius-lg);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.08);
+            transform: scale(1.005);
+        }
+
+        .dropzone-icon {
+            font-size: 52px;
+            margin-bottom: 12px;
+            display: block;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .dropzone-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .dropzone-desc {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .samples-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .sample-chip {
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sample-chip:hover {
+            background: #3b4c68;
+            color: #fff;
+        }
+
+        /* Workspace Grid */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .workspace-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .view-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .view-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .view-title {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Preview Canvas Container */
+        .preview-box {
+            width: 100%;
+            height: 380px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0b0f17;
+        }
+
+        .checkerboard {
+            background-image: 
+                linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+                linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+                linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #0f172a;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+            user-select: none;
+            transition: filter 0.2s;
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Comparison Slider */
+        .comparison-container {
+            width: 100%;
+            height: 420px;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            user-select: none;
+        }
+
+        .comp-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .comp-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .comp-after {
+            z-index: 2;
+            width: 50%;
+            border-right: 2px solid #fff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            background: transparent;
+        }
+
+        .comp-slider-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: #fff;
+            z-index: 10;
+            cursor: ew-resize;
+            transform: translateX(-50%);
+        }
+
+        .comp-slider-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            background: #fff;
+            color: #0f172a;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .comp-tag {
+            position: absolute;
+            top: 14px;
+            padding: 4px 10px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 5;
+            color: white;
+        }
+
+        .comp-tag-left { left: 14px; }
+        .comp-tag-right { right: 14px; }
+
+        /* Background Customizer Toolbar */
+        .bg-toolbar {
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .bg-toolbar-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .color-palette {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #475569;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+            position: relative;
+        }
+
+        .color-swatch:hover,
+        .color-swatch.active {
+            transform: scale(1.15);
+            border-color: #fff;
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .color-picker-btn {
+            overflow: hidden;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+        }
+
+        .color-picker-btn input[type="color"] {
+            opacity: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* Action Buttons Area */
+        .actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Status & Banner */
+        .status-box {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-loading {
+            display: flex;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+        }
+
+        .status-error {
+            display: flex;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .status-success {
+            display: flex;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #a7f3d0;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Guide */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 540px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .guide-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .step-text strong {
+            color: var(--text-main);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 { font-size: 24px; }
+            .preview-box { height: 260px; }
+            .comparison-container { height: 280px; }
+            .actions-bar { flex-direction: column; align-items: stretch; }
+            .action-group { width: 100%; justify-content: stretch; }
+            .action-group .btn { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="logo-wrap">
+            <span class="logo-icon">✨</span>
+            <span class="logo-text">Hugging Face AI</span>
+        </div>
+        <h1>AI Background Remover</h1>
+        <p class="subtitle">अपनी किसी भी फोटो का बैकग्राउंड सिर्फ 1-क्लिक में हटाएं। Hugging Face Inference API (RMBG) द्वारा संचालित।</p>
+    </header>
+
+    <!-- Settings Card -->
+    <div class="card" id="settingsCard">
+        <div class="card-header" onclick="toggleSettings()">
+            <div class="card-title">
+                <span>⚙️ API सेटिंग्स (Settings)</span>
+                <span id="apiStatusBadge" class="badge-status badge-missing">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span>
+                    टोकन आवश्यक (Token Needed)
+                </span>
+            </div>
+            <span id="settingsToggleIcon" style="color: var(--text-muted); font-size: 14px;">▼</span>
+        </div>
+
+        <div class="settings-body" id="settingsBody">
+            <div class="form-group">
+                <div class="form-label">
+                    <span>Hugging Face Access Token</span>
+                    <a href="#" class="help-link" onclick="openGuideModal(event)">
+                        🔑 फ्री टोकन कैसे बनाएं? (How to get token)
+                    </a>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="hfTokenInput" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" spellcheck="false">
+                    <button type="button" class="btn" onclick="toggleTokenVisibility()" title="Show/Hide">👁️</button>
+                    <button type="button" class="btn btn-primary" onclick="saveToken()">सेव (Save)</button>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                    🔒 आपका टोकन सिर्फ आपके ब्राउज़र (Local Storage) में सुरक्षित रहता है।
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-label">
+                    <span>AI मॉडल चुनें (Model)</span>
+                </div>
+                <select id="modelSelect">
+                    <option value="briaai/RMBG-1.4" selected>briaai/RMBG-1.4 (अनुशंसित - तेज़ व सटीक)</option>
+                    <option value="briaai/RMBG-2.0">briaai/RMBG-2.0 (नया मॉडल)</option>
+                </select>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                    BRIA RMBG बैकग्राउंड हटाने के लिए दुनिया का सबसे उन्नत मॉडल है।
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="statusBox" class="status-box"></div>
+
+    <!-- Upload Section -->
+    <div class="upload-section" id="uploadSection">
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+            <span class="dropzone-icon">🖼️</span>
+            <div class="dropzone-title">फोटो यहाँ खींचें (Drag & Drop) या क्लिक करके चुनें</div>
+            <div class="dropzone-desc">सपोर्टेड प्रारूप: JPG, PNG, WEBP (अधिकतम 10MB) | क्लिपबोर्ड से <b>Ctrl + V</b> भी कर सकते हैं</div>
+            <button type="button" class="btn btn-primary" style="pointer-events: none;">
+                📁 फोटो चुनें (Browse Photo)
+            </button>
+
+            <!-- Quick Samples -->
+            <div class="samples-row" onclick="event.stopPropagation()">
+                <span>या टेस्ट करने के लिए सैंपल चुनें:</span>
+                <span class="sample-chip" onclick="loadSampleImage('person')">👤 व्यक्ति (Portrait)</span>
+                <span class="sample-chip" onclick="loadSampleImage('product')">👟 प्रोडक्ट (Shoe)</span>
+                <span class="sample-chip" onclick="loadSampleImage('car')">🚗 कार (Vehicle)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace & Preview (Visible when image loaded) -->
+    <div id="workspaceSection" style="display: none; flex-direction: column; gap: 20px;">
+        
+        <!-- View Toggle & Custom Background Toolbar -->
+        <div class="bg-toolbar">
+            <span class="bg-toolbar-label">🎨 बैकग्राउंड बदलें:</span>
+            <div class="color-palette">
+                <!-- Transparent Checker -->
+                <div class="color-swatch active" style="background: transparent; position: relative;" title="Transparent" onclick="changeBackground('transparent', this)">
+                    <div style="width: 100%; height: 100%; border-radius: 50%; background-image: linear-gradient(45deg, #666 25%, transparent 25%), linear-gradient(-45deg, #666 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #666 75%), linear-gradient(-45deg, transparent 75%, #666 75%); background-size: 8px 8px;"></div>
+                </div>
+                <!-- Pure White -->
+                <div class="color-swatch" style="background: #ffffff;" title="White" onclick="changeBackground('#ffffff', this)"></div>
+                <!-- Passport Blue -->
+                <div class="color-swatch" style="background: #0284c7;" title="Passport Blue" onclick="changeBackground('#0284c7', this)"></div>
+                <!-- Studio Red -->
+                <div class="color-swatch" style="background: #dc2626;" title="Red" onclick="changeBackground('#dc2626', this)"></div>
+                <!-- Dark Grey -->
+                <div class="color-swatch" style="background: #1e293b;" title="Dark" onclick="changeBackground('#1e293b', this)"></div>
+                <!-- Custom Color Picker -->
+                <div class="color-picker-btn" title="कोई भी रंग चुनें (Pick Custom Color)">
+                    <input type="color" id="customColorPicker" value="#10b981" oninput="changeBackground(this.value, this.parentElement)">
+                </div>
+            </div>
+
+            <!-- View Switcher -->
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+                <button type="button" class="btn" id="btnViewSide" onclick="switchView('side')" style="padding: 6px 12px; font-size: 13px;">
+                    विवरण (Side-by-Side)
+                </button>
+                <button type="button" class="btn" id="btnViewSlider" onclick="switchView('slider')" style="padding: 6px 12px; font-size: 13px;">
+                    स्लाइडर (Slider)
+                </button>
+            </div>
+        </div>
+
+        <!-- View 1: Side by Side Grid -->
+        <div class="workspace-grid" id="sideBySideView">
+            <!-- Original Box -->
+            <div class="view-card">
+                <div class="view-title-bar">
+                    <span class="view-title">📷 मूल फोटो (Original)</span>
+                    <span id="originalMeta" style="font-size: 12px; color: var(--text-muted);"></span>
+                </div>
+                <div class="preview-box">
+                    <img id="originalImg" class="preview-img" alt="Original Image">
+                </div>
+            </div>
+
+            <!-- Result Box -->
+            <div class="view-card">
+                <div class="view-title-bar">
+                    <span class="view-title">✂️ बैकग्राउंड रिमूव्ड (Result)</span>
+                    <span id="resultMeta" style="font-size: 12px; color: var(--text-muted);"></span>
+                </div>
+                <div class="preview-box checkerboard" id="resultPreviewBox">
+                    <img id="resultImg" class="preview-img" alt="Result Image" style="display: none;">
+                    <div id="resultPlaceholder" class="placeholder-text">
+                        <span>क्लिक करें <b>"बैकग्राउंड हटाएं"</b> पर</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 2: Interactive Before/After Comparison Slider -->
+        <div class="view-card" id="sliderView" style="display: none;">
+            <div class="view-title-bar" style="margin-bottom: 8px;">
+                <span class="view-title">↔️ तुलनात्मक स्लाइडर (Before / After Comparison)</span>
+                <span style="font-size: 12px; color: var(--text-muted);">सफेद हैंडल को बाएँ/दाएँ खींचें</span>
+            </div>
+            <div class="comparison-container" id="comparisonBox">
+                <!-- Original (Before) on the back -->
+                <div class="comp-image">
+                    <img id="compBeforeImg" alt="Before">
+                    <div class="comp-tag comp-tag-right">Before</div>
+                </div>
+                <!-- Processed (After) on top with clipped width -->
+                <div class="comp-image comp-after checkerboard" id="compAfterDiv">
+                    <img id="compAfterImg" alt="After">
+                    <div class="comp-tag comp-tag-left">After</div>
+                </div>
+                <!-- Draggable Divider Line -->
+                <div class="comp-slider-handle" id="compSliderHandle">
+                    <div class="comp-slider-circle">↔</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Control Buttons -->
+        <div class="actions-bar">
+            <div class="action-group">
+                <button type="button" class="btn btn-primary" id="btnProcess" onclick="processImage()">
+                    ⚡ बैकग्राउंड हटाएं (Remove Background)
+                </button>
+                <button type="button" class="btn btn-danger" onclick="resetAll()">
+                    🔄 नई फोटो (Reset)
+                </button>
+            </div>
+
+            <div class="action-group" id="downloadGroup" style="display: none;">
+                <button type="button" class="btn btn-success" onclick="downloadImage('transparent')">
+                    💾 पारदर्शी PNG डाउनलोड (Download PNG)
+                </button>
+                <button type="button" class="btn" onclick="downloadImage('composite')" id="btnDownloadBg">
+                    🖼️ बैकग्राउंड के साथ डाउनलोड
+                </button>
+                <button type="button" class="btn" onclick="copyImageToClipboard()" title="Copy to clipboard">
+                    📋 कॉपी करें
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: How to get HF Token -->
+<div class="modal-overlay" id="guideModal" onclick="closeGuideModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title">🔑 Hugging Face API टोकन कैसे प्राप्त करें?</div>
+            <button class="modal-close" onclick="closeGuideModal()">&times;</button>
+        </div>
+        <div>
+            <div class="guide-step">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                    सबसे पहले <strong><a href="https://huggingface.co/join" target="_blank" style="color: #818cf8;">Hugging Face</a></strong> पर फ्री अकाउंट बनाएं या लॉगिन करें।
+                </div>
+            </div>
+            <div class="guide-step">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                    इसके बाद सीधे इस लिंक पर जाएं: <br>
+                    👉 <strong><a href="https://huggingface.co/settings/tokens" target="_blank" style="color: #818cf8; text-decoration: underline;">huggingface.co/settings/tokens</a></strong>
+                </div>
+            </div>
+            <div class="guide-step">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                    <strong>"Create new token"</strong> (या "New token") पर क्लिक करें। <br>
+                    टोकन का नाम कुछ भी दें (जैसे: <code>bg-remover</code>) और Role में <strong>"Read"</strong> चुनें।
+                </div>
+            </div>
+            <div class="guide-step">
+                <div class="step-num">4</div>
+                <div class="step-text">
+                    जनरेट हुए टोकन (<code>hf_...</code>) को कॉपी करें और यहाँ इनपुट बॉक्स में पेस्ट करके <strong>"सेव (Save)"</strong> पर क्लिक करें। यह 100% फ्री है!
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 16px;">
+                <button class="btn btn-primary" onclick="closeGuideModal()">समझ गया (Got it!)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global State
+    let currentImageBlob = null;
+    let resultImageBlob = null;
+    let selectedBgColor = 'transparent';
+    let currentView = 'side'; // 'side' or 'slider'
+    let isProcessing = false;
+
+    // LocalStorage Keys
+    const STORAGE_KEY_TOKEN = 'hf_api_token_bg_remover';
+    const STORAGE_KEY_MODEL = 'hf_api_model_bg_remover';
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        loadSavedSettings();
+        setupDragAndDrop();
+        setupClipboardPaste();
+        setupComparisonSlider();
+    });
+
+    // Load settings from localStorage
+    function loadSavedSettings() {
+        const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+        const savedModel = localStorage.getItem(STORAGE_KEY_MODEL);
+
+        if (savedToken) {
+            document.getElementById('hfTokenInput').value = savedToken;
+            updateApiBadge(true);
+        } else {
+            updateApiBadge(false);
+        }
+
+        if (savedModel) {
+            document.getElementById('modelSelect').value = savedModel;
+        }
+    }
+
+    // Save token to localStorage
+    function saveToken() {
+        const token = document.getElementById('hfTokenInput').value.trim();
+        const model = document.getElementById('modelSelect').value;
+
+        if (!token) {
+            showStatus('⚠️ कृपया अपना Hugging Face API टोकन दर्ज करें!', 'error');
+            return;
+        }
+
+        if (!token.startsWith('hf_')) {
+            if (!confirm('चेतावनी: सामान्यतः Hugging Face टोकन "hf_" से शुरू होता है। क्या आप इसे फिर भी सेव करना चाहते हैं?')) {
+                return;
+            }
+        }
+
+        localStorage.setItem(STORAGE_KEY_TOKEN, token);
+        localStorage.setItem(STORAGE_KEY_MODEL, model);
+        updateApiBadge(true);
+        showStatus('✅ API टोकन सफलतापूर्वक सुरक्षित कर लिया गया!', 'success');
+
+        // Automatically collapse settings after saving
+        setTimeout(() => {
+            const body = document.getElementById('settingsBody');
+            body.style.display = 'none';
+            document.getElementById('settingsToggleIcon').innerText = '▶';
+        }, 1200);
+    }
+
+    // Toggle Settings panel visibility
+    function toggleSettings() {
+        const body = document.getElementById('settingsBody');
+        const icon = document.getElementById('settingsToggleIcon');
+        if (body.style.display === 'none') {
+            body.style.display = 'grid';
+            icon.innerText = '▼';
+        } else {
+            body.style.display = 'none';
+            icon.innerText = '▶';
+        }
+    }
+
+    // Toggle Password visibility
+    function toggleTokenVisibility() {
+        const input = document.getElementById('hfTokenInput');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Update Status Badge
+    function updateApiBadge(connected) {
+        const badge = document.getElementById('apiStatusBadge');
+        if (connected) {
+            badge.className = 'badge-status badge-connected';
+            badge.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> API कनेक्टेड (Ready)';
+        } else {
+            badge.className = 'badge-status badge-missing';
+            badge.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> टोकन आवश्यक (Token Needed)';
+        }
+    }
+
+    // Status Banner Display
+    function showStatus(message, type = 'loading') {
+        const box = document.getElementById('statusBox');
+        box.className = `status-box status-${type}`;
+        
+        if (type === 'loading') {
+            box.innerHTML = `<div class="spinner"></div><div>${message}</div>`;
+        } else {
+            box.innerHTML = `<div>${message}</div>`;
+        }
+        box.style.display = 'flex';
+
+        if (type === 'success') {
+            setTimeout(() => {
+                if (box.className.includes('status-success')) {
+                    box.style.display = 'none';
+                }
+            }, 4000);
+        }
+    }
+
+    function hideStatus() {
+        document.getElementById('statusBox').style.display = 'none';
+    }
+
+    // Guide Modal
+    function openGuideModal(e) {
+        if (e) e.preventDefault();
+        document.getElementById('guideModal').style.display = 'flex';
+    }
+
+    function closeGuideModal(e) {
+        if (!e || e.target === document.getElementById('guideModal') || e.target.classList.contains('modal-close') || e.target.tagName === 'BUTTON') {
+            document.getElementById('guideModal').style.display = 'none';
+        }
+    }
+
+    // Drag & Drop Setup
+    function setupDragAndDrop() {
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover'].forEach(name => {
+            dropzone.addEventListener(name, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(name => {
+            dropzone.addEventListener(name, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dragover');
+            });
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                handleSelectedFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleSelectedFile(e.target.files[0]);
+            }
+        });
+    }
+
+    // Setup Clipboard Paste
+    function setupClipboardPaste() {
+        window.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    handleSelectedFile(blob);
+                    showStatus('📋 क्लिपबोर्ड से फोटो प्राप्त हुई!', 'success');
+                    break;
+                }
+            }
+        });
+    }
+
+    // Handle Selected File / Blob
+    function handleSelectedFile(file) {
+        if (!file.type.startsWith('image/')) {
+            showStatus('⚠️ कृपया केवल इमेज फाइल (JPG, PNG, WEBP) अपलोड करें!', 'error');
+            return;
+        }
+
+        if (file.size > 12 * 1024 * 1024) {
+            showStatus('⚠️ इमेज साइज 12MB से अधिक नहीं होना चाहिए!', 'error');
+            return;
+        }
+
+        currentImageBlob = file;
+        resultImageBlob = null; // Clear previous result
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const originalImg = document.getElementById('originalImg');
+            originalImg.src = e.target.result;
+            
+            // Comparison slider image
+            document.getElementById('compBeforeImg').src = e.target.result;
+            
+            // Hide result until processed
+            document.getElementById('resultImg').style.display = 'none';
+            document.getElementById('resultPlaceholder').style.display = 'block';
+            document.getElementById('downloadGroup').style.display = 'none';
+            document.getElementById('originalMeta').innerText = `${(file.size / 1024).toFixed(1)} KB`;
+            document.getElementById('resultMeta').innerText = '';
+
+            // Show Workspace
+            document.getElementById('workspaceSection').style.display = 'flex';
+            document.getElementById('workspaceSection').scrollIntoView({ behavior: 'smooth' });
+            hideStatus();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Load Sample Test Image
+    function loadSampleImage(type) {
+        let svg = '';
+        if (type === 'person') {
+            svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+                <rect width="600" height="600" fill="#fed7aa"/>
+                <circle cx="300" cy="220" r="90" fill="#f97316"/>
+                <path d="M160 480 C160 360, 440 360, 440 480 Z" fill="#ea580c"/>
+                <circle cx="270" cy="210" r="10" fill="#fff"/>
+                <circle cx="330" cy="210" r="10" fill="#fff"/>
+                <path d="M280 250 Q300 270 320 250" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <text x="300" y="550" font-size="28" font-family="sans-serif" font-weight="bold" fill="#7c2d12" text-anchor="middle">SAMPLE PORTRAIT</text>
+            </svg>`;
+        } else if (type === 'product') {
+            svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+                <rect width="600" height="600" fill="#bfdbfe"/>
+                <path d="M140 380 Q150 260 260 260 L350 260 Q420 300 480 340 L460 400 L140 400 Z" fill="#2563eb"/>
+                <path d="M120 400 L480 400 L470 430 L130 430 Z" fill="#1e293b"/>
+                <text x="300" y="530" font-size="28" font-family="sans-serif" font-weight="bold" fill="#1e3a8a" text-anchor="middle">SAMPLE PRODUCT</text>
+            </svg>`;
+        } else {
+            svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+                <rect width="600" height="600" fill="#bbf7d0"/>
+                <path d="M120 360 L180 260 L420 260 L480 360 L500 400 L100 400 Z" fill="#dc2626"/>
+                <circle cx="190" cy="400" r="40" fill="#1e293b"/>
+                <circle cx="410" cy="400" r="40" fill="#1e293b"/>
+                <circle cx="190" cy="400" r="20" fill="#cbd5e1"/>
+                <circle cx="410" cy="400" r="20" fill="#cbd5e1"/>
+                <text x="300" y="530" font-size="28" font-family="sans-serif" font-weight="bold" fill="#14532d" text-anchor="middle">SAMPLE VEHICLE</text>
+            </svg>`;
+        }
+
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const file = new File([blob], `sample_${type}.png`, { type: 'image/png' });
+        handleSelectedFile(file);
+    }
+
+    // Call Hugging Face API to Remove Background
+    async function processImage() {
+        if (isProcessing) return;
+
+        const token = document.getElementById('hfTokenInput').value.trim();
+        if (!token) {
+            showStatus('⚠️ कृपया पहले ऊपर Settings में अपना Hugging Face API Token डालें!', 'error');
+            openGuideModal();
+            return;
+        }
+
+        if (!currentImageBlob) {
+            showStatus('⚠️ कृपया पहले कोई फोटो अपलोड करें!', 'error');
+            return;
+        }
+
+        const model = document.getElementById('modelSelect').value;
+        const btnProcess = document.getElementById('btnProcess');
+
+        try {
+            isProcessing = true;
+            btnProcess.disabled = true;
+            btnProcess.innerHTML = `<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> प्रोसेसिंग जारी है...`;
+            showStatus(`🚀 AI मॉडल (${model}) द्वारा बैकग्राउंड हटाया जा रहा है, कृपया प्रतीक्षा करें...`, 'loading');
+
+            const resultBlob = await callHuggingFaceApiWithRetry(currentImageBlob, model, token);
+
+            resultImageBlob = resultBlob;
+            const resultUrl = URL.createObjectURL(resultBlob);
+
+            // Set images
+            const resultImg = document.getElementById('resultImg');
+            resultImg.src = resultUrl;
+            resultImg.style.display = 'block';
+
+            document.getElementById('compAfterImg').src = resultUrl;
+            document.getElementById('resultPlaceholder').style.display = 'none';
+            document.getElementById('resultMeta').innerText = `${(resultBlob.size / 1024).toFixed(1)} KB (PNG)`;
+            
+            // Show Download Buttons
+            document.getElementById('downloadGroup').style.display = 'flex';
+            showStatus('🎉 बैकग्राउंड सफलतापूर्वक हटा दिया गया है!', 'success');
+
+        } catch (error) {
+            console.error('Inference Error:', error);
+            showStatus(`❌ त्रुटि: ${error.message}`, 'error');
+        } finally {
+            isProcessing = false;
+            btnProcess.disabled = false;
+            btnProcess.innerHTML = `⚡ बैकग्राउंड हटाएं (Remove Background)`;
+        }
+    }
+
+    // Hugging Face API Caller with Auto-retry for 503 (Model loading)
+    async function callHuggingFaceApiWithRetry(imageBlob, model, token, maxRetries = 3) {
+        const url = `https://api-inference.huggingface.co/models/${model}`;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/octet-stream"
+                },
+                body: imageBlob
+            });
+
+            // If success
+            if (response.ok) {
+                return await response.blob();
+            }
+
+            // If 503: Model is loading, Hugging Face returns estimated_time
+            if (response.status === 503 && attempt < maxRetries) {
+                let waitTime = 15;
+                try {
+                    const data = await response.json();
+                    if (data.estimated_time) {
+                        waitTime = Math.ceil(data.estimated_time);
+                    }
+                } catch (e) {}
+
+                showStatus(`⏳ मॉडल सर्वर पर सक्रिय हो रहा है... कृपया ${waitTime} सेकंड प्रतीक्षा करें (प्रयास ${attempt}/${maxRetries})`, 'loading');
+                await new Promise(r => setTimeout(r, waitTime * 1000));
+                continue;
+            }
+
+            // Handle errors
+            if (response.status === 401) {
+                throw new Error("अमान्य API टोकन (Invalid HF Token)! कृपया सही टोकन जांचें।");
+            } else if (response.status === 429) {
+                throw new Error("API दर सीमा (Rate Limit) समाप्त हो गई है। कृपया कुछ देर बाद प्रयास करें।");
+            } else {
+                let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errData = await response.json();
+                    if (errData.error) errorMsg = errData.error;
+                } catch (e) {}
+                throw new Error(errorMsg);
+            }
+        }
+
+        throw new Error("सर्वर से उत्तर प्राप्त करने में अधिक समय लगा। कृपया पुनः प्रयास करें।");
+    }
+
+    // Change Background Color / Transparency
+    function changeBackground(color, element) {
+        selectedBgColor = color;
+
+        // Swatch styling
+        document.querySelectorAll('.color-swatch, .color-picker-btn').forEach(el => el.classList.remove('active'));
+        if (element) element.classList.add('active');
+
+        const resultBox = document.getElementById('resultPreviewBox');
+        const compAfterDiv = document.getElementById('compAfterDiv');
+
+        if (color === 'transparent') {
+            resultBox.className = 'preview-box checkerboard';
+            resultBox.style.backgroundColor = '';
+            compAfterDiv.className = 'comp-image comp-after checkerboard';
+            compAfterDiv.style.backgroundColor = '';
+            document.getElementById('btnDownloadBg').style.display = 'none';
+        } else {
+            resultBox.className = 'preview-box';
+            resultBox.style.backgroundColor = color;
+            compAfterDiv.className = 'comp-image comp-after';
+            compAfterDiv.style.backgroundColor = color;
+            document.getElementById('btnDownloadBg').style.display = 'inline-flex';
+        }
+    }
+
+    // Switch between Side-by-Side and Slider Views
+    function switchView(view) {
+        currentView = view;
+        const sideView = document.getElementById('sideBySideView');
+        const sliderView = document.getElementById('sliderView');
+        const btnSide = document.getElementById('btnViewSide');
+        const btnSlider = document.getElementById('btnViewSlider');
+
+        if (view === 'slider') {
+            sideView.style.display = 'none';
+            sliderView.style.display = 'block';
+            btnSlider.classList.add('btn-primary');
+            btnSide.classList.remove('btn-primary');
+        } else {
+            sideView.style.display = 'grid';
+            sliderView.style.display = 'none';
+            btnSide.classList.add('btn-primary');
+            btnSlider.classList.remove('btn-primary');
+        }
+    }
+
+    // Setup Comparison Slider Drag
+    function setupComparisonSlider() {
+        const container = document.getElementById('comparisonBox');
+        const handle = document.getElementById('compSliderHandle');
+        const afterDiv = document.getElementById('compAfterDiv');
+        let isSliding = false;
+
+        function updateSlider(x) {
+            const rect = container.getBoundingClientRect();
+            let pos = ((x - rect.left) / rect.width) * 100;
+            pos = Math.max(0, Math.min(100, pos));
+
+            handle.style.left = `${pos}%`;
+            afterDiv.style.width = `${pos}%`;
+        }
+
+        container.addEventListener('mousedown', (e) => {
+            isSliding = true;
+            updateSlider(e.clientX);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isSliding) return;
+            updateSlider(e.clientX);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isSliding = false;
+        });
+
+        // Touch support
+        container.addEventListener('touchstart', (e) => {
+            isSliding = true;
+            updateSlider(e.touches[0].clientX);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isSliding) return;
+            updateSlider(e.touches[0].clientX);
+        });
+
+        window.addEventListener('touchend', () => {
+            isSliding = false;
+        });
+    }
+
+    // Download Image
+    function downloadImage(type = 'transparent') {
+        if (!resultImageBlob) {
+            showStatus('⚠️ डाउनलोड करने के लिए पहले परिणाम प्राप्त करें!', 'error');
+            return;
+        }
+
+        const fileName = `bg_removed_${Date.now()}.png`;
+
+        if (type === 'transparent' || selectedBgColor === 'transparent') {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(resultImageBlob);
+            link.download = fileName;
+            link.click();
+        } else {
+            // Composite with selected background color on Canvas
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                const ctx = canvas.getContext('2d');
+
+                // Fill background
+                ctx.fillStyle = selectedBgColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw processed image on top
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `custom_bg_${Date.now()}.png`;
+                    link.click();
+                }, 'image/png');
+            };
+            img.src = URL.createObjectURL(resultImageBlob);
+        }
+    }
+
+    // Copy to Clipboard
+    async function copyImageToClipboard() {
+        if (!resultImageBlob) return;
+
+        try {
+            const item = new ClipboardItem({ "image/png": resultImageBlob });
+            await navigator.clipboard.write([item]);
+            showStatus('📋 इमेज क्लिपबोर्ड में कॉपी हो गई!', 'success');
+        } catch (err) {
+            console.error(err);
+            showStatus('⚠️ क्लिपबोर्ड पर कॉपी करने में असमर्थ। कृपया डाउनलोड करें।', 'error');
+        }
+    }
+
+    // Reset workspace
+    function resetAll() {
+        currentImageBlob = null;
+        resultImageBlob = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('originalImg').src = '';
+        document.getElementById('resultImg').src = '';
+        document.getElementById('compBeforeImg').src = '';
+        document.getElementById('compAfterImg').src = '';
+        document.getElementById('workspaceSection').style.display = 'none';
+        document.getElementById('downloadGroup').style.display = 'none';
+        hideStatus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
